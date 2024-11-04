@@ -1,7 +1,8 @@
 import logo from "./logo.svg";
 import "./App.css";
 import "./style.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import supabase from "./supabase.js";
 
 const CATEGORIES = [
   { name: "technology", color: "#3b82f6" },
@@ -50,8 +51,15 @@ const initialFacts = [
 
 function App() {
   const [showForm, setShowForm] = useState(false);
-  const [facts, setFacts] = useState(initialFacts);
-
+  const [facts, setFacts] = useState([]);
+  useEffect(function () {
+    async function getFacts() {
+      const { data: facts, error } = await supabase.from("facts").select("*");
+      console.log(facts);
+      setFacts(facts);
+    }
+    getFacts();
+  }, []);
   return (
     <>
       <Header showForm={showForm} setShowForm={setShowForm} />
@@ -165,8 +173,8 @@ function CategoryFilter() {
   return (
     <aside>
       <ul>
-        <li class="category">
-          <button class="btn btn-all-categories">ALL</button>
+        <li className="category">
+          <button className="btn btn-all-categories">ALL</button>
         </li>
         {CATEGORIES.map((cat) => (
           <li key={cat.name} className="category">
