@@ -1,6 +1,7 @@
 import logo from "./logo.svg";
 import "./App.css";
 import "./style.css";
+import { useState } from "react";
 
 const CATEGORIES = [
   { name: "technology", color: "#3b82f6" },
@@ -48,6 +49,8 @@ const initialFacts = [
 ];
 
 function App() {
+  const [showForm, setShowForm] = useState(false);
+
   return (
     <>
       <header className="header">
@@ -55,14 +58,36 @@ function App() {
           <img src="logo.png" />
           <h1>Geek's place</h1>
         </div>
-        <button className="btn btn-large">Share a fact</button>
+        <button
+          className="btn btn-large btn-open"
+          onClick={() => setShowForm((currentShowForm) => !currentShowForm)}
+        >
+          Share a fact
+        </button>
       </header>
-      <NewFactForm />
+      <Counter />
+      {showForm ? <NewFactForm /> : null}
+
       <main className="main">
         <CategoryFilter />
         <FactList />
       </main>
     </>
+  );
+}
+
+function Counter() {
+  const [count, setCount] = useState(0);
+  return (
+    <div>
+      <span style={{ fontSize: "40px" }}>{count}</span>
+      <button
+        className="btn btn-large"
+        onClick={() => setCount((currentCount) => currentCount + 1)}
+      >
+        ➕
+      </button>
+    </div>
   );
 }
 
