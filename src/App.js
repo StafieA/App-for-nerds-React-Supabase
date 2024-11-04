@@ -50,16 +50,19 @@ const initialFacts = [
 
 function App() {
   const [showForm, setShowForm] = useState(false);
+  const [facts, setFacts] = useState(initialFacts);
 
   return (
     <>
       <Header showForm={showForm} setShowForm={setShowForm} />
       {/* <Counter /> */}
-      {showForm ? <NewFactForm /> : null}
+      {showForm ? (
+        <NewFactForm setFacts={setFacts} setShowForm={setShowForm} />
+      ) : null}
 
       <main className="main">
         <CategoryFilter />
-        <FactList />
+        <FactList facts={facts} />
       </main>
     </>
   );
@@ -97,14 +100,37 @@ function Counter() {
   );
 }
 
-function NewFactForm() {
+function NewFactForm({ setFacts, setShowForm }) {
   const [text, setText] = useState("");
   const [source, setSource] = useState("");
   const [category, setCategory] = useState("");
 
   const textLength = text.length;
   function handleSubmit(e) {
+    //Prevent a browser reload
     e.preventDefault();
+    //Check if the data is valid
+    if (text && source && category && textLength <= 200) {
+      //Create a new fact object
+      const newFact = {
+        id: Math.round(Math.random() * 1000000),
+        text: text,
+        source: source,
+        category: category,
+        votesInteresting: 0,
+        votesMindblowing: 0,
+        votesFalse: 0,
+        createdIn: new Date().getFullYear(),
+      };
+      //Add a new fact to state(GUI)
+      setFacts((facts) => [newFact, ...facts]);
+      //Reset input fields
+      setText("");
+      setSource("");
+      setCategory("");
+      //Close the form
+      setShowForm(false);
+    }
   }
 
   return (
@@ -156,8 +182,7 @@ function CategoryFilter() {
     </aside>
   );
 }
-function FactList() {
-  const facts = initialFacts;
+function FactList({ facts }) {
   return (
     <section>
       <ul className="facts-list">
