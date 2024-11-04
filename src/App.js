@@ -71,7 +71,25 @@ function NewFactForm() {
 }
 
 function CategoryFilter() {
-  return <aside>CategoryFilter</aside>;
+  return (
+    <aside>
+      <ul>
+        <li class="category">
+          <button class="btn btn-all-categories">ALL</button>
+        </li>
+        {CATEGORIES.map((cat) => (
+          <li key={cat.name} className="category">
+            <button
+              className="btn btn-category"
+              style={{ backgroundColor: cat.color }}
+            >
+              {cat.name}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
 }
 function FactList() {
   const facts = initialFacts;
@@ -82,13 +100,15 @@ function FactList() {
           <Fact key={fact.id} fact={fact} />
         ))}
       </ul>
+
+      <p>There are {facts.length} facts in the database.Add your own !✌️</p>
     </section>
   );
 }
 
 function Fact({ fact }) {
   return (
-    <li key={fact.id} className="fact">
+    <li className="fact">
       <p>
         {fact.text}
 
