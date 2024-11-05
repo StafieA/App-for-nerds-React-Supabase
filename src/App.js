@@ -15,39 +15,39 @@ const CATEGORIES = [
   { name: "news", color: "#8b5cf6" },
 ];
 
-const initialFacts = [
-  {
-    id: 1,
-    text: "React is being developed by Meta (formerly facebook)",
-    source: "https://opensource.fb.com/",
-    category: "technology",
-    votesInteresting: 24,
-    votesMindblowing: 9,
-    votesFalse: 4,
-    createdIn: 2021,
-  },
-  {
-    id: 2,
-    text: "Millennial dads spend 3 times as much time with their kids than their fathers spent with them. In 1982, 43% of fathers had never changed a diaper. Today, that number is down to 3%",
-    source:
-      "https://www.mother.ly/parenting/millennial-dads-spend-more-time-with-their-kids",
-    category: "society",
-    votesInteresting: 11,
-    votesMindblowing: 2,
-    votesFalse: 0,
-    createdIn: 2019,
-  },
-  {
-    id: 3,
-    text: "Lisbon is the capital of Portugal",
-    source: "https://en.wikipedia.org/wiki/Lisbon",
-    category: "society",
-    votesInteresting: 8,
-    votesMindblowing: 3,
-    votesFalse: 1,
-    createdIn: 2015,
-  },
-];
+// const initialFacts = [
+//   {
+//     id: 1,
+//     text: "React is being developed by Meta (formerly facebook)",
+//     source: "https://opensource.fb.com/",
+//     category: "technology",
+//     votesInteresting: 24,
+//     votesMindblowing: 9,
+//     votesFalse: 4,
+//     createdIn: 2021,
+//   },
+//   {
+//     id: 2,
+//     text: "Millennial dads spend 3 times as much time with their kids than their fathers spent with them. In 1982, 43% of fathers had never changed a diaper. Today, that number is down to 3%",
+//     source:
+//       "https://www.mother.ly/parenting/millennial-dads-spend-more-time-with-their-kids",
+//     category: "society",
+//     votesInteresting: 11,
+//     votesMindblowing: 2,
+//     votesFalse: 0,
+//     createdIn: 2019,
+//   },
+//   {
+//     id: 3,
+//     text: "Lisbon is the capital of Portugal",
+//     source: "https://en.wikipedia.org/wiki/Lisbon",
+//     category: "society",
+//     votesInteresting: 8,
+//     votesMindblowing: 3,
+//     votesFalse: 1,
+//     createdIn: 2015,
+//   },
+// ];
 
 function App() {
   const [showForm, setShowForm] = useState(false);
@@ -85,7 +85,11 @@ function App() {
 
       <main className="main">
         <CategoryFilter setCurrentCategory={setCurrentCategory} />
-        {isLoading ? <Loader /> : <FactList facts={facts} />}
+        {isLoading ? (
+          <Loader />
+        ) : (
+          <FactList facts={facts} setFacts={setFacts} />
+        )}
       </main>
     </>
   );
@@ -153,7 +157,8 @@ function NewFactForm({ setFacts, setShowForm }) {
         .select();
       setIsUploading(false);
       //Add a new fact to state(GUI)
-      setFacts((facts) => [newFact[0], ...facts]);
+      if (!error) setFacts((facts) => [newFact[0], ...facts]);
+      else alert("There is a problem with uploading data");
       //Reset input fields
       setText("");
       setSource("");
@@ -227,7 +232,7 @@ function CategoryFilter({ setCurrentCategory }) {
 function Loader() {
   return <h1 className="message">Loading...</h1>;
 }
-function FactList({ facts }) {
+function FactList({ facts, setFacts }) {
   if (facts.length === 0) {
     return (
       <p className="message">
@@ -239,14 +244,29 @@ function FactList({ facts }) {
     <section>
       <ul className="facts-list">
         {facts.map((fact) => (
-          <Fact key={fact.id} fact={fact} />
+          <Fact key={fact.id} fact={fact} setFacts={setFacts} />
         ))}
       </ul>
     </section>
   );
 }
 
-function Fact({ fact }) {
+function Fact({ fact, setFacts }) {
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  async function handleVotes(columnName) {
+    setIsUpdating(true);
+    const { data: updatedFact, error } = await supabase
+      .from("facts")
+      .update({ [columnName]: fact[columnName] + 1 })
+      .eq("id", fact.id)
+      .select();
+    setIsUpdating(false);
+    if (!error)
+      setFacts((facts) =>
+        facts.map((f) => (f.id === fact.id ? updatedFact[0] : f))
+      );
+  }
   return (
     <li className="fact">
       <p>
@@ -266,9 +286,21 @@ function Fact({ fact }) {
         {fact.category}
       </span>
       <div className="vote-buttons">
-        <button>👍 {fact.votesInteresting}</button>
-        <button>🤯{fact.votesMindblowing}</button>
-        <button>⛔️ {fact.votesFalse}</button>
+        <button
+          onClick={() => handleVotes("votesInteresting")}
+          disabled={isUpdating}
+        >
+          👍 {fact.votesInteresting}
+        </button>
+        <button
+          onClick={() => handleVotes("votesMindBlowing")}
+          disabled={isUpdating}
+        >
+          🤯{fact.votesMindBlowing}
+        </button>
+        <button onClick={() => handleVotes("votesFalse")} disabled={isUpdating}>
+          ⛔️ {fact.votesFalse}
+        </button>
       </div>
     </li>
   );
