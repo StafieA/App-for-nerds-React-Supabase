@@ -126,6 +126,17 @@ function Counter() {
     </div>
   );
 }
+function isValidHttpUrl(string) {
+  let url;
+
+  try {
+    url = new URL(string);
+  } catch (_) {
+    return false;
+  }
+
+  return url.protocol === "http:" || url.protocol === "https:";
+}
 
 function NewFactForm({ setFacts, setShowForm }) {
   const [text, setText] = useState("");
@@ -134,11 +145,20 @@ function NewFactForm({ setFacts, setShowForm }) {
   const [isUploading, setIsUploading] = useState(false);
 
   const textLength = text.length;
+
+  const selectStyle = {
+    fontWeight: "bold", // Bold for the whole select, especially the label
+    // background: "linear-gradient(to right, green, yellow)", // Gradient for the whole select
+    color: "red",
+    textTransform: "uppercase",
+    padding: "8px",
+    borderRadius: "4px",
+  };
   async function handleSubmit(e) {
     //Prevent a browser reload
     e.preventDefault();
     //Check if the data is valid
-    if (text && source && category && textLength <= 200) {
+    if (text && isValidHttpUrl(source) && category && textLength <= 200) {
       //Create a new fact object
       // const newFact = {
       //   id: Math.round(Math.random() * 1000000),
@@ -181,13 +201,19 @@ function NewFactForm({ setFacts, setShowForm }) {
       <span>{200 - textLength}</span>
       <input
         type="text"
-        placeholder="Trustworthy source..."
+        placeholder="Type a valid URL format..."
         value={source}
         onChange={(e) => setSource(e.target.value)}
         disabled={isUploading}
       />
-      <select value={category} onChange={(e) => setCategory(e.target.value)}>
-        <option value="">Choose category</option>
+      <select
+        style={selectStyle}
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+      >
+        <option value="" hidden>
+          Choose category
+        </option>
         {CATEGORIES.map((cat) => (
           <option key={cat.name} value={cat.name}>
             {cat.name.toUpperCase()}
@@ -253,6 +279,8 @@ function FactList({ facts, setFacts }) {
 
 function Fact({ fact, setFacts }) {
   const [isUpdating, setIsUpdating] = useState(false);
+  const isDisputed =
+    fact.votesInteresting + fact.votesMindBlowing < fact.votesFalse;
 
   async function handleVotes(columnName) {
     setIsUpdating(true);
@@ -270,8 +298,8 @@ function Fact({ fact, setFacts }) {
   return (
     <li className="fact">
       <p>
+        {isDisputed ? <span className="disputed">[⛔Disputed]</span> : null}
         {fact.text}
-
         <a className="source" href={fact.source} target="_blank">
           source
         </a>
